@@ -64,15 +64,13 @@ void read_file(){
 }
 
 void makesymboltable(){
-	text_size=0;
+	data_size=0;
 	for (int i=0; i<line; i++){
-		printf("ERROR at %d %s %s",text_size, code[i].instruction, code[i].label);
-		printf(" %d\n",i);
 		if(strcmp(code[i].instruction,".word")==0){
-			strcpy(tab[text_size].label,code[i].label);
-			tab[text_size].address= DATA+4*text_size;
+			strcpy(tab[data_size].label,code[i].label);
+			tab[data_size].address= DATA+4*data_size;
       //change operand -> int
-			char op1[512];
+			char op1[32];
 			int op1_int;
 			strcpy(op1,code[i].operand);
 			if(op1[0]=='$'){
@@ -83,68 +81,70 @@ void makesymboltable(){
 				op1_int=99999;
 			} else if(op1[0]=='0' && op1[1]=='x'){ 
 				char buf[16];
-				for(int j=2;j<strlen(op1);j++){
+				for(int j=2;j<strlen(op1)+1;j++){
 					buf[j-2]=op1[j];
 				}
+				printf("%s\n",op1);
+				printf("%s\n",buf);
 				op1_int=hex_to_dec(buf);
 			}else{
 				op1_int=atoi(op1);
 			}	
-			tab[text_size].value= op1_int;
-			text_size++;	
+			tab[data_size].value= op1_int;
+			data_size++;	
 		}
 	}
 }
 
-void datasize(){
-	data_size=0;
+void textsize(){
+	text_size=0;
 	for (int i=0;i<line;i++){
 		if(!strcmp(code[i].instruction,"addiu")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"addu")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"and")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"andi")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"beq")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"bne")){	
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"j")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"jal")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"jr")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"lui")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"lw")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"la")){
 			if(!strcmp(code[i].label,tab[0].label)){
-				data_size++;
+				text_size++;
 			}else{//load address is 0x1000 0x0004
-				data_size=data_size+2;
+				text_size=text_size+2;
 			}
 		}else if(!strcmp(code[i].instruction,"nor")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"or")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"ori")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"sltiu")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"sltu")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"sll")){
-				data_size++;
+				text_size++;
 		}else if(!strcmp(code[i].instruction,"srl")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"sw")){
-			data_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"subu")){
-			data_size++;
+			text_size++;
 		}else{
 		}
 	}
@@ -152,7 +152,7 @@ void datasize(){
 
 int address_word(char *argv){
 	int address;
-	for(int i=0;i<text_size;i++){
+	for(int i=0;i<data_size;i++){
 		if(!strcmp(argv,tab[i].label)){
 			address=tab[i].address;
 			return address;
@@ -160,15 +160,33 @@ int address_word(char *argv){
 	}
 }
 
-void text_print(){
+void data_print(){
 	int *print;
-	for(int i=0; i<text_size; i++){
-		print=binary_32bits(symtab[i].value);
+	for(int i=0; i<data_size; i++){
+		//printf("tab[i].value %d \n", tab[i].value);
+		print=binary_32bits(tab[i].value);
 		for(int i=0; i<32; i++){
 			printf("%d",print[i]);
 		}
 		printf("\n");
 	}
+}
+
+void data_text_code_print(){
+	int *text_code;
+	int *data_code;
+
+	text_code=binary_32bits(text_size*4);
+	for(int i=0;i<32;i++){
+		printf("%d",text_code[i]);
+	}
+	printf("\n");	
+
+	data_code=binary_32bits(data_size*4);
+	for(int i=0;i<32;i++){
+		printf("%d",data_code[i]);
+	}
+	printf("\n");
 }
 
 void parsing_operand_print(int li){
@@ -224,7 +242,7 @@ void parsing_operand_print(int li){
 			op1_int=99999;
 		} else if(op1[0]=='0' && op1[1]=='x'){ 
 			char buf[16];
-			for(int i=2;i<strlen(op1);i++){
+			for(int i=2;i<strlen(op1)+1;i++){
 				buf[i-2]=op1[i];
 			}
 			op1_int=hex_to_dec(buf);
@@ -240,7 +258,7 @@ void parsing_operand_print(int li){
 			op2_int=99999;
 		} else if(op2[0]=='0' && op2[1]=='x'){ 
 				char buf[16];
-				for(int i=2;i<strlen(op2);i++){
+				for(int i=2;i<strlen(op2)+1;i++){
 					buf[i-2]=op2[i];
 				}
 				op2_int=hex_to_dec(buf);
@@ -256,7 +274,7 @@ void parsing_operand_print(int li){
 			op2_int=99999;
 		} else if(op3[0]=='0' && op3[1]=='x'){ 
 			char buf[16];
-			for(int i=2;i<strlen(op3);i++){
+			for(int i=2;i<strlen(op3)+1;i++){
 				buf[i-2]=op3[i];
 			}
 			op3_int=hex_to_dec(buf);
@@ -301,7 +319,7 @@ void parsing_operand_print(int li){
 			flag=1;
 			//check word_address
 			int k;
-			for(k=0;k<text_size;k++){
+			for(k=0;k<data_size;k++){
 				if(!strcmp(code[li].label,tab[k].label)){
 					break;
 				}
@@ -355,23 +373,27 @@ void parsing_operand_print(int li){
 int main(){
 	read_file();
 	printf("%d",line);	
-	for(int i=0; i<line; i++){
+/*	for(int i=0; i<line; i++){
 		printf("line:%d label: %-10s instruction %-10s operand: %-10s\n",i,code[i].label,code[i].instruction,code[i].operand);
-	}
+	}*/
 	//sybmol table teset
 	makesymboltable();
-	for(int i=0;i<text_size;i++){
+	for(int i=0;i<data_size;i++){
 		printf("label: %s value: %d address: %d \n",tab[i].label, tab[i].value, tab[i].address);
 	}
 	
-	//data size test
-	datasize();
-	printf("data_size: %d\n",data_size);
+	//text size test
+	textsize();
+	data_text_code_print();
 
-	//data print test
-	for(int i=text_size+2; i<line; i++){
+
+	//text print test
+	for(int i=data_size+2; i<line; i++){
 		parsing_operand_print(i);
 	}
+	
+	//data print test
+	data_print();
 
 	return 0;
 }
