@@ -15,4 +15,6 @@ typedef struct symboltable{
 
 struct s_code code[512];
 int line=0;
+int text_size=0;
+int data_size=0;
 #endif
