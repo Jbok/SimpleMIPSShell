@@ -63,12 +63,39 @@ void read_file(){
 	fclose(pFile);	
 }
 
-void sectionsize(){
-	for (int i=0;i<line;i++){
-		text_size=0;
+void makesymboltable(){
+	text_size=0;
+	for (int i=0; i<line; i++){
 		if(!strcmp(code[i].instruction,".word")){
-			text_size++;
+			strcpy(symtab[text_size].label,code[i].label);
+			symtab[text_size].address= DATA+4*word_num;
+      //change operand -> int
+			char *op1;
+			int op1_int;
+			strcpy(op1,code[i].operand;
+			if(op1[0]=='$'){
+				char *buf=strtok(op1,"$");
+				strcpy(op1,buf);
+				op1_int=atoi(op1);
+			} else if(isalpha(op1[0])){
+				op1_int=99999;
+			} else if(op1[0]=='0' && op1[1]=='x'){ 
+				char *buf;
+				for(int i=2;i<strlen(op1);i++){
+					buf[i-2]=op1[i];
+				}
+				op1_int=atoi(buf);
+			}else{
+				op1_int=atoi(op1);
+			}			
+			symtab[text_size].value= DATA+4*op1_int;
+			text_size++;		
 		}
+	}
+}
+
+void datansize(){
+	for (int i=0;i<line;i++){
 		data_size=0;
 		if(!strcmp(code[].instruction,"addiu")){
 			data_size++;
@@ -93,7 +120,10 @@ void sectionsize(){
 		}else if(!strcmp(code[i].instruction,"lw")){
 			data_size++;
 		}else if(!strcmp(code[i].instruction,"la")){
-			//
+			if(!strcmp(code[li].label,symtab[0].label){
+				data_size++;
+			}else{//load address is 0x1000 0x0004
+				data_size=data_size+2;
 		}else if(!strcmp(code[i].instruction,"nor")){
 			data_size++;
 		}else if(!strcmp(code[i].instruction,"or")){
@@ -113,6 +143,14 @@ void sectionsize(){
 		}else if(!strcmp(code[i].instruction,"subu")){
 			data_size++;
 		}else{
+		}
+	}
+}
+
+int address_word(char *argv){
+	for(int i=0;i<text_size;i++){
+		if(!strcmp(argv,symtab[i].label)){
+			return address;
 		}
 	}
 }
@@ -229,11 +267,19 @@ char parsing_operand(int li){
 	}else if(!strcmp(code[li].instruction,"lw")){
 		I_format(15,op3_int,op1_int,op2_int);
 	}else if(!strcmp(code[li].instruction,"la")){
-		if(//load address is 0x1000 0000){
+		if(!strcmp(code[li].label,symtab[0].label){
 			I_format(15,0,op1_int,4096);//lui - 0x1000: 4096
 		}else{//load address is 0x1000 0x0004
 			I_format(15,0,op1_int,4096);//lui - 0x1000: 4096
-			I_format(13,op1_int,op1_int,4);//ori - 0x0004: 4
+
+			//check word_address
+			int k;
+			for(k=0;k<text_size;k++){
+				if(!strcmp(code[li].label,symtab[k].label)){
+					break;
+				}
+			}
+			I_format(13,op1_int,op1_int,(address_word(code[k].address)-4096)*4);//ori - 0x0004: 4
 		}
 	}else if(!strcmp(code[li].instruction,"nor")){
 		R_format(0,op2_int,op3_int,op1_int,0,39);//hex27 d39
@@ -266,7 +312,8 @@ int main(){
 	for(int i=0; i<line; i++){
 		printf("line:%d label: %-10s instruction %-10s operand: %-10s\n",i,code[i].label,code[i].instruction,code[i].operand);
 	}
-	parsing_operand(20);
+	printf("\n\n");
+	makesymboltable();
 
 	return 0;
 }
