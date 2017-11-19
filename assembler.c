@@ -171,6 +171,11 @@ void parsing_operand_print(int li){
 
 	char buf[64];
 	strcpy(buf,code[li].operand);
+
+	int emptyflag=0; //to prevent stack smashing
+	if(!strcpy(buf,"")){
+		emptyflag=1;
+	}
 //	printf("%-10s:",buf);
 	char *ptr=strtok(buf, " ,(");	
 	int i=0;
@@ -196,39 +201,39 @@ void parsing_operand_print(int li){
 	int op2_int;
 	int op3_int;
 
-
-	if(op1[0]=='$'){
-		char *buf=strtok(op1,"$");
-		strcpy(op1,buf);
-		op1_int=atoi(op1);
-	} else if(isalpha(op1[0])){
-		op1_int=99999;
-	} else if(op1[0]=='0' && op1[1]=='x'){ 
-		char buf[16];
-		for(int i=2;i<strlen(op1);i++){
-			buf[i-2]=op1[i];
+	if(!emptyflag){
+		if(op1[0]=='$'){
+			char *buf=strtok(op1,"$");
+			strcpy(op1,buf);
+			op1_int=atoi(op1);
+		} else if(isalpha(op1[0])){
+			op1_int=99999;
+		} else if(op1[0]=='0' && op1[1]=='x'){ 
+			char buf[16];
+			for(int i=2;i<strlen(op1);i++){
+				buf[i-2]=op1[i];
+			}
+			op1_int=atoi(buf);
+		}else{
+			op1_int=atoi(op1);
 		}
-		op1_int=atoi(buf);
-	}else{
-		op1_int=atoi(op1);
-	}
-
-	if(op2[0]=='$'){
-		char *buf=strtok(op2,"$");
-		strcpy(op2,buf);
-		op2_int=atoi(op2);
-	} else if(isalpha(op2[0])){
-		op2_int=99999;
-	} else if(op2[0]=='0' && op2[1]=='x'){ 
-		char buf[16];
-		for(int i=2;i<strlen(op2);i++){
-			buf[i-2]=op2[i];
+	
+		if(op2[0]=='$'){
+			char *buf=strtok(op2,"$");
+			strcpy(op2,buf);
+			op2_int=atoi(op2);
+		} else if(isalpha(op2[0])){
+			op2_int=99999;
+		} else if(op2[0]=='0' && op2[1]=='x'){ 
+			char buf[16];
+			for(int i=2;i<strlen(op2);i++){
+				buf[i-2]=op2[i];
+			}
+			op2_int=atoi(buf);
+		}else{
+			op2_int=atoi(op2);
 		}
-		op2_int=atoi(buf);
-	}else{
-		op2_int=atoi(op2);
 	}
-
 	if(op3[0]=='$'){
 		char *buf=strtok(op3,"$");
 		strcpy(op3,buf);
@@ -310,7 +315,7 @@ void parsing_operand_print(int li){
 	}/*else if(!strcmp(code[li].instruction,".word")){
 		print=binary_32bits(op1_int);
 	}*/else{
-		print=temp;
+		return;
 	}
 
 
