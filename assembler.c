@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 
 #include "assembler.h"
 #include "instruction.h"
@@ -85,7 +86,7 @@ void makesymboltable(){
 				for(int j=2;j<strlen(op1);j++){
 					buf[j-2]=op1[j];
 				}
-				op1_int=atoi(buf);
+				op1_int=hex_to_dec(buf);
 			}else{
 				op1_int=atoi(op1);
 			}	
@@ -159,6 +160,17 @@ int address_word(char *argv){
 	}
 }
 
+void text_print(){
+	int *print;
+	for(int i=0; i<text_size; i++){
+		print=binary_32bits(symtab[i].value);
+		for(int i=0; i<32; i++){
+			printf("%d",print[i]);
+		}
+		printf("\n");
+	}
+}
+
 void parsing_operand_print(int li){
 	int flag=0;//print twice flag for la flag==0 not la, flag==1 la
 	int *print;
@@ -173,10 +185,12 @@ void parsing_operand_print(int li){
 	strcpy(buf,code[li].operand);
 
 	int emptyflag=0; //to prevent stack smashing
-	if(!strcpy(buf,"")){
+	if(!strcmp(buf,"")){
 		emptyflag=1;
+	}else{
+		//printf("%-20s:",buf);
 	}
-//	printf("%-10s:",buf);
+
 	char *ptr=strtok(buf, " ,(");	
 	int i=0;
 	while (ptr!=NULL){
@@ -201,7 +215,7 @@ void parsing_operand_print(int li){
 	int op2_int;
 	int op3_int;
 
-	if(!emptyflag){
+	if(emptyflag==0){
 		if(op1[0]=='$'){
 			char *buf=strtok(op1,"$");
 			strcpy(op1,buf);
@@ -213,7 +227,7 @@ void parsing_operand_print(int li){
 			for(int i=2;i<strlen(op1);i++){
 				buf[i-2]=op1[i];
 			}
-			op1_int=atoi(buf);
+			op1_int=hex_to_dec(buf);
 		}else{
 			op1_int=atoi(op1);
 		}
@@ -225,31 +239,31 @@ void parsing_operand_print(int li){
 		} else if(isalpha(op2[0])){
 			op2_int=99999;
 		} else if(op2[0]=='0' && op2[1]=='x'){ 
-			char buf[16];
-			for(int i=2;i<strlen(op2);i++){
-				buf[i-2]=op2[i];
-			}
-			op2_int=atoi(buf);
+				char buf[16];
+				for(int i=2;i<strlen(op2);i++){
+					buf[i-2]=op2[i];
+				}
+				op2_int=hex_to_dec(buf);
 		}else{
 			op2_int=atoi(op2);
 		}
-	}
-	if(op3[0]=='$'){
-		char *buf=strtok(op3,"$");
-		strcpy(op3,buf);
-		op3_int=atoi(op3);
-	} else if(isalpha(op3[0])){
-		op2_int=99999;
-	} else if(op3[0]=='0' && op3[1]=='x'){ 
-		char buf[16];
-		for(int i=2;i<strlen(op3);i++){
-			buf[i-2]=op3[i];
+	
+		if(op3[0]=='$'){
+			char *buf=strtok(op3,"$");
+			strcpy(op3,buf);
+			op3_int=atoi(op3);
+		} else if(isalpha(op3[0])){
+			op2_int=99999;
+		} else if(op3[0]=='0' && op3[1]=='x'){ 
+			char buf[16];
+			for(int i=2;i<strlen(op3);i++){
+				buf[i-2]=op3[i];
+			}
+			op3_int=hex_to_dec(buf);
+		}else{
+			op3_int=atoi(op3);
 		}
-		op3_int=atoi(buf);
-	}else{
-		op3_int=atoi(op3);
 	}
-
 
 
 
@@ -260,9 +274,9 @@ void parsing_operand_print(int li){
 	if(!strcmp(code[li].instruction,"addiu")){
 		print=I_format(9,op2_int,op1_int,op3_int);
 	}else if(!strcmp(code[li].instruction,"addu")){
-		print=R_format(0,op2_int,op3_int,op1_int,0,33);//hex:21 dec:33
+		print=R_format(0,op2_int,op3_int,op1_int,0,33);//hex:2,1 dec:33
 	}else if(!strcmp(code[li].instruction,"and")){
-		print=R_format(0,op2_int,op3_int,op1_int,0,36);//hex:24 dec:36
+		print=R_format(0,op2_int,op3_int,op1_int,0,36);//hex:2,4 dec:36
 	}else if(!strcmp(code[li].instruction,"andi")){
 		print=I_format(12,op2_int,op1_int,op3_int);//hex:c dec:12
 	}else if(!strcmp(code[li].instruction,"beq")){
@@ -278,7 +292,7 @@ void parsing_operand_print(int li){
 	}else if(!strcmp(code[li].instruction,"lui")){
 		print=I_format(15,0,op1_int,op2_int);
 	}else if(!strcmp(code[li].instruction,"lw")){
-		print=I_format(15,op3_int,op1_int,op2_int);
+		print=I_format(35,op3_int,op1_int,op2_int);//hex:2,3 dec:35
 	}else if(!strcmp(code[li].instruction,"la")){
 		if(!strcmp(code[li].label,tab[0].label)){
 			print=I_format(15,0,op1_int,4096);//lui - 0x1000: 4096
@@ -295,23 +309,23 @@ void parsing_operand_print(int li){
 			print_second=I_format(13,op1_int,op1_int,(tab[k].address-4096)*4);//ori - 0x0004: 4
 		}
 	}else if(!strcmp(code[li].instruction,"nor")){
-		print=R_format(0,op2_int,op3_int,op1_int,0,39);//hex27 d39
+		print=R_format(0,op2_int,op3_int,op1_int,0,39);//hex2,7
 	}else if(!strcmp(code[li].instruction,"or")){
-		print=R_format(0,op2_int,op3_int,op1_int,0,37);//hex25 d37
+		print=R_format(0,op2_int,op3_int,op1_int,0,37);//hex2,5 
 	}else if(!strcmp(code[li].instruction,"ori")){
 		print=I_format(13,op1_int,op2_int,op3_int);//hex:d dec13
 	}else if(!strcmp(code[li].instruction,"sltiu")){
 		print=I_format(13,op2_int,op1_int,op3_int);//hex:b dec11
 	}else if(!strcmp(code[li].instruction,"sltu")){
-		print=R_format(0,op2_int,op3_int,op1_int,0,43);//hex:2b dec43
+		print=R_format(0,op2_int,op3_int,op1_int,0,43);//hex:2,b dec43
 	}else if(!strcmp(code[li].instruction,"sll")){
 		print=R_format(0,0,op2_int,op1_int,op3_int,0);//hex0 d0
 	}else if(!strcmp(code[li].instruction,"srl")){
 		print=R_format(0,0,op2_int,op1_int,op3_int,2);//hex2 d2
 	}else if(!strcmp(code[li].instruction,"sw")){
-		print=I_format(53,op3_int,op1_int,op2_int);//hex2b d53
+		print=I_format(43,op3_int,op1_int,op2_int);//hex2,b d53
 	}else if(!strcmp(code[li].instruction,"subu")){
-		print=R_format(0,op2_int,op3_int,op1_int,0,35);//hex23 d35
+		print=R_format(0,op2_int,op3_int,op1_int,0,35);//hex2,3 d35
 	}/*else if(!strcmp(code[li].instruction,".word")){
 		print=binary_32bits(op1_int);
 	}*/else{
@@ -354,9 +368,10 @@ int main(){
 	datasize();
 	printf("data_size: %d\n",data_size);
 
-	//text print test
-	for(int i=0; i<line; i++){
+	//data print test
+	for(int i=text_size+2; i<line; i++){
 		parsing_operand_print(i);
 	}
+
 	return 0;
 }

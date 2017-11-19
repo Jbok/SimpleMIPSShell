@@ -187,7 +187,7 @@ int *R_format(int opcode, int rs, int rt, int rd, int shamt, int funct){
 		result[i]=shamt_temp[shamt_temp_num++];
 	}
 
-	int *funct_temp=binary_5bits(funct); 
+	int *funct_temp=binary_6bits(funct); 
     int funct_temp_num=0;
     for(int i=26; i<32; i++){
         result[i]=funct_temp[funct_temp_num++];
