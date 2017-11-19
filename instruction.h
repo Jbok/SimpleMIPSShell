@@ -1,6 +1,7 @@
 #ifndef _INSTRUCTION_H_
 #define _INSTRUCTION_H_
 
+int *idec_to_bin(int idec);
 int hex_to_dec(char *hex);
 int *binary_5bits(int dec);
 int *binary_6bits(int dec);

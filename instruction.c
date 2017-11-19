@@ -3,6 +3,41 @@
 #include <math.h>
 #include "instruction.h"
 
+int *idec_to_bin(int idec){
+
+	int isign=1;//plus
+	int pbin[16];
+
+	if(idec<0){
+		isign=-1;//minus
+		idec *= -1;
+	}
+	for (int i=0;i<16;i++){
+		pbin[i]=idec%2;
+		idec >>= 1;
+	}
+	if(isign==-1){
+		for(int i=0; i<16;i++){
+			(pbin[i]==0)?(pbin[i]=1):(pbin[i]=0);
+		}
+		pbin[0] += 1;
+		for (int i=0; i<32-1;i++){
+			if(pbin[i]==2){
+				pbin[i]=0;
+				pbin[i+1] += 1;
+			}else{
+				break;
+			}
+		}
+	}
+	int j=0;
+	static int result[16];
+	for(int i=15;i>=0;i--){
+		result[j++]=pbin[i];
+	}
+	return result;
+}
+
 int hex_to_dec(char *hex){
 	int dec=0;
 	

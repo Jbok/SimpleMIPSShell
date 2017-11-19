@@ -107,7 +107,7 @@ char parsing_operand(int line){
 		for(int i=2;i<strlen(op1);i++){
 			buf[i-2]=op1[i];
 		}
-		printf("here %s ",buf);
+		op1_int=atoi(buf);
 	}else{
 		op1_int=atoi(op1);
 	}
@@ -119,7 +119,11 @@ char parsing_operand(int line){
 	} else if(isalpha(op2[0])){
 		op2_int=99999;
 	} else if(op2[0]=='0' && op2[1]=='x'){ 
-		op2_int=161616;
+		char *buf;
+		for(int i=2;i<strlen(op2);i++){
+			buf[i-2]=op2[i];
+		}
+		op2_int=atoi(buf);
 	}else{
 		op2_int=atoi(op2);
 	}
@@ -131,7 +135,11 @@ char parsing_operand(int line){
 	} else if(isalpha(op3[0])){
 		op2_int=99999;
 	} else if(op3[0]=='0' && op3[1]=='x'){ 
-		op2_int=161616;
+		char *buf;
+		for(int i=2;i<strlen(op3);i++){
+			buf[i-2]=op3[i];
+		}
+		op3_int=atoi(buf);
 	}else{
 		op3_int=atoi(op3);
 	}
@@ -158,8 +166,14 @@ void printcode(){
 int main(){
 	read_file();
 	for(int i=0; i<line; i++){
-		printf("@label: %-10s instruction %-10s operand: %-10s\n",code[i].label,code[i].instruction,code[i].operand);
+		printf("line:%d label: %-10s instruction %-10s operand: %-10s\n",i,code[i].label,code[i].instruction,code[i].operand);
 	}
-	parsing_operand(3);
+	parsing_operand(20);
+printf("\n=============\n");
+int *temp;
+temp=idec_to_bin(-12);
+for(int i=0;i<16;i++){
+	printf("%d",temp[i]);
+}
 	return 0;
 }
