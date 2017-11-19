@@ -146,7 +146,7 @@ int *I_format(int opcode, int rs, int rd, int se){
 		result[i]=rd_temp[rd_temp_num++];
 	}
 
-	int *se_temp=binary_16bits(se);
+	int *se_temp=idec_to_bin(se);
 	int se_temp_num=0;
 	for(int i=16; i<32; i++){
 		result[i]=se_temp[se_temp_num++];
