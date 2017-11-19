@@ -195,7 +195,7 @@ int *R_format(int opcode, int rs, int rt, int rd, int shamt, int funct){
 	return result;
 }
 
-int *J_format(int opcdoe, int address){
+int *J_format(int opcode, int address){
 	static int result[32];
 	int *opcode_temp=binary_6bits(opcode);
 	int opcode_temp_num=0;

@@ -10,7 +10,7 @@ typedef struct s_code{
 }s_code;
 
 
-typedef struct symboltable{
+typedef struct symtab{
 	char label[10];
 	int value;
 	int address;
@@ -18,8 +18,8 @@ typedef struct symboltable{
 
 
 struct s_code code[512];
-struct symtab symtab[32];
+struct symtab tab[32];
 int line=0;
-int text_size=0;
-int data_size=0;
+int text_size;
+int data_size;
 #endif

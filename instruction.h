@@ -6,7 +6,7 @@ int hex_to_dec(char *hex);
 int *binary_5bits(int dec);
 int *binary_6bits(int dec);
 int *binary_16bits(int dec);
-int *binary_32bits(int dec)
+int *binary_32bits(int dec);
 int *I_format(int opcode, int rs, int rd, int se);
 int *R_format(int opcode, int rs, int rt, int rd, int shamt, int funct);
 int *J_format(int opcdoe, int address);
