@@ -16,10 +16,18 @@ typedef struct symtab{
 	int address;
 }symtab;
 
+typedef struct labtab{
+	char label[10];
+	int line;
+}labtab;
+
 
 struct s_code code[512];
 struct symtab tab[32];
+struct labtab ltab[32];
+
 int line=0;
 int text_size;
 int data_size;
+int tab_line=0;
 #endif

@@ -10,7 +10,10 @@
 
 void read_file(){
 	char filename[255];
-	strcpy(filename,"./example3.s");	
+	printf("input .s file with path: ");
+	scanf("%s",filename);
+	printf("%s\n",filename);
+	//strcpy(filename,"./example3.s");	
 	FILE *pFile =NULL;
 	pFile=fopen(filename,"r");
 	if(pFile != NULL){
@@ -68,6 +71,8 @@ void makesymboltable(){
 	for (int i=0; i<line; i++){
 		if(strcmp(code[i].instruction,".word")==0){
 			strcpy(tab[data_size].label,code[i].label);
+			tab[data_size].label[strlen(code[i].label)-1]='\0'; //delete :
+
 			tab[data_size].address= DATA+4*data_size;
       //change operand -> int
 			char op1[32];
@@ -92,6 +97,18 @@ void makesymboltable(){
 			}	
 			tab[data_size].value= op1_int;
 			data_size++;	
+		}
+	}
+}
+
+void makelabeltable(){
+	tab_line=0;
+	for (int i=data_size+2; i<line; i++){
+		if(strcmp(code[i].label,"")){
+			strcpy(ltab[tab_line].label,code[i].label);
+			ltab[tab_line].label[strlen(code[i].label)-1]='\0'; //delete :
+			ltab[tab_line].line=i;
+			tab_line++;
 		}
 	}
 }
@@ -122,7 +139,18 @@ void textsize(){
 		}else if(!strcmp(code[i].instruction,"lw")){
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"la")){
-			if(!strcmp(code[i].label,tab[0].label)){
+			//find data
+			char op1[32];
+			strcpy(op1,code[i].operand);
+			char *ptr=strtok(op1,"$, ");
+			while(ptr!=NULL){
+				ptr=strtok(NULL,"$, ");
+				if(isalpha(ptr[0])){
+					break;
+				}
+			} 
+
+			if(!strcmp(ptr,tab[0].label)){
 				text_size++;
 			}else{//load address is 0x1000 0x0004
 				text_size=text_size+2;
@@ -138,7 +166,7 @@ void textsize(){
 		}else if(!strcmp(code[i].instruction,"sltu")){
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"sll")){
-				text_size++;
+			text_size++;
 		}else if(!strcmp(code[i].instruction,"srl")){
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"sw")){
@@ -302,36 +330,44 @@ void parsing_operand_print(int li){
 	}else if(!strcmp(code[li].instruction,"bne")){
 		print=I_format(5,op1_int,op2_int,op3_int);//hex:5 dec:5
 	}else if(!strcmp(code[li].instruction,"j")){
-		////
+		//print=J_format();
 	}else if(!strcmp(code[li].instruction,"jal")){
 		////
 	}else if(!strcmp(code[li].instruction,"jr")){
-		////
+		print=R_format(0,op1_int,0,0,0,8);
 	}else if(!strcmp(code[li].instruction,"lui")){
 		print=I_format(15,0,op1_int,op2_int);
 	}else if(!strcmp(code[li].instruction,"lw")){
 		print=I_format(35,op3_int,op1_int,op2_int);//hex:2,3 dec:35
 	}else if(!strcmp(code[li].instruction,"la")){
-		if(!strcmp(code[li].label,tab[0].label)){
+		if(!strcmp(op2,tab[0].label)){
 			print=I_format(15,0,op1_int,4096);//lui - 0x1000: 4096
 		}else{//load address is 0x1000 0x0004
 			print=I_format(15,0,op1_int,4096);//lui - 0x1000: 4096
+			for(int i=0;i<32;i++){
+				printf("%d",print[i]);
+			}
+			printf("\n");
 			flag=1;
 			//check word_address
 			int k;
 			for(k=0;k<data_size;k++){
-				if(!strcmp(code[li].label,tab[k].label)){
+				if(!strcmp(op2,tab[k].label)){
 					break;
 				}
 			}
-			print_second=I_format(13,op1_int,op1_int,(tab[k].address-4096)*4);//ori - 0x0004: 4
+			print_second=I_format(13,op1_int,op1_int,k*4);//ori - 0x0004: 4
+			for(int i=0;i<32;i++){
+				printf("%d",print_second[i]);
+			}
+			printf("\n");
 		}
 	}else if(!strcmp(code[li].instruction,"nor")){
 		print=R_format(0,op2_int,op3_int,op1_int,0,39);//hex2,7
 	}else if(!strcmp(code[li].instruction,"or")){
 		print=R_format(0,op2_int,op3_int,op1_int,0,37);//hex2,5 
 	}else if(!strcmp(code[li].instruction,"ori")){
-		print=I_format(13,op1_int,op2_int,op3_int);//hex:d dec13
+		print=I_format(13,op2_int,op1_int,op3_int);//hex:d dec13
 	}else if(!strcmp(code[li].instruction,"sltiu")){
 		print=I_format(13,op2_int,op1_int,op3_int);//hex:b dec11
 	}else if(!strcmp(code[li].instruction,"sltu")){
@@ -354,18 +390,12 @@ void parsing_operand_print(int li){
 	/////////////////////////////////////
 	///          print result         ///
 	/////////////////////////////////////
-	for(int i=0;i<32;i++){
-		printf("%d",print[i]);
-	}
-	printf("\n");
-	
-	if (flag==1){
+	if(flag==0){
 		for(int i=0;i<32;i++){
-			printf("%d",print_second[i]);
+			printf("%d",print[i]);
 		}
-		printf("\n");	
+		printf("\n");
 	}
-	
 }
 
 
@@ -386,6 +416,11 @@ int main(){
 	textsize();
 	data_text_code_print();
 
+	//make label table
+	makelabeltable();
+	for(int i=0;i<tab_line;i++){
+		printf("label: %s line: %d \n", ltab[i].label, ltab[i].line);
+	}
 
 	//text print test
 	for(int i=data_size+2; i<line; i++){
