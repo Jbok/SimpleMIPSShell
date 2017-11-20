@@ -7,6 +7,8 @@ typedef struct s_code{
 	char label[10];
 	char instruction[15];
 	char operand[64];
+	int line;
+	int text_line;
 }s_code;
 
 
@@ -27,7 +29,8 @@ struct symtab tab[32];
 struct labtab ltab[32];
 
 int line=0;
+int text_line;
 int text_size;
 int data_size;
-int tab_line=0;
+int tab_line;
 #endif

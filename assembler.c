@@ -58,6 +58,7 @@ void read_file(){
 				}
 				pStrnum++;
 			}
+			code[line].line=line;
 			line++;
 		}
 	}else{
@@ -115,28 +116,40 @@ void makelabeltable(){
 
 void textsize(){
 	text_size=0;
+	text_line=0;
 	for (int i=0;i<line;i++){
 		if(!strcmp(code[i].instruction,"addiu")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"addu")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"and")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"andi")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"beq")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"bne")){	
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"j")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"jal")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"jr")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"lui")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"lw")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"la")){
 			//find data
@@ -154,27 +167,39 @@ void textsize(){
 				text_size++;
 			}else{//load address is 0x1000 0x0004
 				text_size=text_size+2;
+				text_line++;
 			}
+			text_line++;
 		}else if(!strcmp(code[i].instruction,"nor")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"or")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"ori")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"sltiu")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"sltu")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"sll")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"srl")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"sw")){
+			text_line++;
 			text_size++;
 		}else if(!strcmp(code[i].instruction,"subu")){
+			text_line++;
 			text_size++;
 		}else{
 		}
+		code[i].text_line=text_line;
 	}
 }
 
@@ -299,7 +324,7 @@ void parsing_operand_print(int li){
 			strcpy(op3,buf);
 			op3_int=atoi(op3);
 		} else if(isalpha(op3[0])){
-			op2_int=99999;
+			op3_int=99999;
 		} else if(op3[0]=='0' && op3[1]=='x'){ 
 			char buf[16];
 			for(int i=2;i<strlen(op3)+1;i++){
@@ -326,13 +351,61 @@ void parsing_operand_print(int li){
 	}else if(!strcmp(code[li].instruction,"andi")){
 		print=I_format(12,op2_int,op1_int,op3_int);//hex:c dec:12
 	}else if(!strcmp(code[li].instruction,"beq")){
+		//find address
+		int label_line;
+		for(int j=0; j<tab_line; j++){
+			if(!strcmp(op3,ltab[j].label)){
+				label_line=ltab[j].line;
+				break;
+			}
+		}
+		if(code[li].line>label_line){
+			op3_int=label_line-code[li].line;
+		}else{
+			op3_int=label_line-(code[li].line+1);
+		}
+		//printf("this line: %d operands line: %d op3_int: %d\n", code[li].line, label_line,op3_int);
 		print=I_format(4,op1_int,op2_int,op3_int);//hex:4 dec:4
 	}else if(!strcmp(code[li].instruction,"bne")){
+		int label_line;
+		for(int j=0; j<tab_line; j++){
+			if(!strcmp(op3,ltab[j].label)){
+				label_line=ltab[j].line;
+				break;
+			}
+		}
+		if(code[li].line>label_line){
+			op3_int=label_line-code[li].line;
+		}else{
+			op3_int=label_line-(code[li].line+1);
+		}
+		//printf("this line: %d operands line: %d op3_int: %d\n", code[li].line, label_line,op3_int);
 		print=I_format(5,op1_int,op2_int,op3_int);//hex:5 dec:5
 	}else if(!strcmp(code[li].instruction,"j")){
-		//print=J_format();
+		int label_text_line;
+		for(int j=0; j<tab_line; j++){
+			if(!strcmp(op1,ltab[j].label)){
+				label_text_line=code[ltab[j].line].text_line;
+				break;
+			}
+		}	
+		printf("label :%s label_text_line:%d data size: %d\n",op1,label_text_line,data_size);
+		int memory = 4194304+4*(label_text_line);//0x0400000 : 4194304
+		int *bin=binary_28bits(memory);
+		print=J_format(2,bin);
+
 	}else if(!strcmp(code[li].instruction,"jal")){
-		////
+		int label_text_line;
+		for(int j=0; j<tab_line; j++){
+			if(!strcmp(op1,ltab[j].label)){
+				label_text_line=code[ltab[j].line].text_line;
+				break;
+			}
+		}	
+		printf("label :%s label_text_line:%d data size: %d\n",op1,label_text_line,data_size);
+		int memory = 4194304+4*(label_text_line);//0x0400000 : 4194304
+		int *bin=binary_28bits(memory);
+		print=J_format(3,bin);
 	}else if(!strcmp(code[li].instruction,"jr")){
 		print=R_format(0,op1_int,0,0,0,8);
 	}else if(!strcmp(code[li].instruction,"lui")){
@@ -369,7 +442,7 @@ void parsing_operand_print(int li){
 	}else if(!strcmp(code[li].instruction,"ori")){
 		print=I_format(13,op2_int,op1_int,op3_int);//hex:d dec13
 	}else if(!strcmp(code[li].instruction,"sltiu")){
-		print=I_format(13,op2_int,op1_int,op3_int);//hex:b dec11
+		print=I_format(11,op2_int,op1_int,op3_int);//hex:b dec11
 	}else if(!strcmp(code[li].instruction,"sltu")){
 		print=R_format(0,op2_int,op3_int,op1_int,0,43);//hex:2,b dec43
 	}else if(!strcmp(code[li].instruction,"sll")){
@@ -409,7 +482,7 @@ int main(){
 	//sybmol table teset
 	makesymboltable();
 	for(int i=0;i<data_size;i++){
-		printf("label: %s value: %d address: %d \n",tab[i].label, tab[i].value, tab[i].address);
+		//printf("label: %s value: %d address: %d \n",tab[i].label, tab[i].value, tab[i].address);
 	}
 	
 	//text size test
@@ -419,7 +492,7 @@ int main(){
 	//make label table
 	makelabeltable();
 	for(int i=0;i<tab_line;i++){
-		printf("label: %s line: %d \n", ltab[i].label, ltab[i].line);
+		//printf("label: %s line: %d \n", ltab[i].label, ltab[i].line);
 	}
 
 	//text print test

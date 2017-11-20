@@ -108,6 +108,23 @@ int *binary_16bits(int dec){
 	return result;
 }
 
+int *binary_28bits(int dec){
+	int temp[28]={0};
+	int i, j;
+	for(i=0; dec>0; i++){
+		temp[i]=dec%2;
+		dec=dec/2;
+	}
+
+	int k=0;
+	static int result[28];
+
+	for(j=27; j>=0; j--){
+		result[k++]=temp[j];
+	}
+	return result;
+}
+
 int *binary_32bits(int dec){
 	int temp[32]={0};
 	int i, j;
@@ -195,12 +212,18 @@ int *R_format(int opcode, int rs, int rt, int rd, int shamt, int funct){
 	return result;
 }
 
-int *J_format(int opcode, int address){
+int *J_format(int opcode, int* address){
 	static int result[32];
 	int *opcode_temp=binary_6bits(opcode);
 	int opcode_temp_num=0;
 	for(int i=0; i<6;i++){
 		result[i]=opcode_temp[opcode_temp_num++];
 	}
+
+	for(int i=6; i<32;i++){
+		result[i]=address[i-6];
+	}
+
+	return result;
 }
 
