@@ -9,11 +9,10 @@
 
 
 void read_file(){
-	char filename[255];
 	printf("input .s file with path: ");
 	scanf("%s",filename);
-	printf("%s\n",filename);
-	//strcpy(filename,"./example3.s");	
+	char resultfile[255];
+	strcpy(resultfile,filename);	
 	FILE *pFile =NULL;
 	pFile=fopen(filename,"r");
 	if(pFile != NULL){
@@ -63,8 +62,12 @@ void read_file(){
 		}
 	}else{
 		fprintf(stderr,"Fille input error!\n");
+		exit(-1);
 	}
 	fclose(pFile);	
+	resultfile[strlen(resultfile)-1] = 'o';
+	//printf("%s\n",resultfile);
+	rFile=fopen(resultfile,"w");
 }
 
 void makesymboltable(){
@@ -90,8 +93,8 @@ void makesymboltable(){
 				for(int j=2;j<strlen(op1)+1;j++){
 					buf[j-2]=op1[j];
 				}
-				printf("%s\n",op1);
-				printf("%s\n",buf);
+				//printf("%s\n",op1);
+				//printf("%s\n",buf);
 				op1_int=hex_to_dec(buf);
 			}else{
 				op1_int=atoi(op1);
@@ -219,9 +222,9 @@ void data_print(){
 		//printf("tab[i].value %d \n", tab[i].value);
 		print=binary_32bits(tab[i].value);
 		for(int i=0; i<32; i++){
-			printf("%d",print[i]);
+			fprintf(rFile,"%d",print[i]);
 		}
-		printf("\n");
+		//printf("\n");
 	}
 }
 
@@ -231,15 +234,15 @@ void data_text_code_print(){
 
 	text_code=binary_32bits(text_size*4);
 	for(int i=0;i<32;i++){
-		printf("%d",text_code[i]);
+		fprintf(rFile,"%d",text_code[i]);
 	}
-	printf("\n");	
+	//printf("\n");	
 
 	data_code=binary_32bits(data_size*4);
 	for(int i=0;i<32;i++){
-		printf("%d",data_code[i]);
+		fprintf(rFile,"%d",data_code[i]);
 	}
-	printf("\n");
+	//printf("\n");
 }
 
 void parsing_operand_print(int li){
@@ -389,7 +392,7 @@ void parsing_operand_print(int li){
 				break;
 			}
 		}	
-		printf("label :%s label_text_line:%d data size: %d\n",op1,label_text_line,data_size);
+		//printf("label :%s label_text_line:%d data size: %d\n",op1,label_text_line,data_size);
 		int memory = 4194304+4*(label_text_line);//0x0400000 : 4194304
 		int *bin=binary_28bits(memory);
 		print=J_format(2,bin);
@@ -402,7 +405,7 @@ void parsing_operand_print(int li){
 				break;
 			}
 		}	
-		printf("label :%s label_text_line:%d data size: %d\n",op1,label_text_line,data_size);
+		//printf("label :%s label_text_line:%d data size: %d\n",op1,label_text_line,data_size);
 		int memory = 4194304+4*(label_text_line);//0x0400000 : 4194304
 		int *bin=binary_28bits(memory);
 		print=J_format(3,bin);
@@ -418,9 +421,9 @@ void parsing_operand_print(int li){
 		}else{//load address is 0x1000 0x0004
 			print=I_format(15,0,op1_int,4096);//lui - 0x1000: 4096
 			for(int i=0;i<32;i++){
-				printf("%d",print[i]);
+				fprintf(rFile,"%d",print[i]);
 			}
-			printf("\n");
+			//printf("\n");
 			flag=1;
 			//check word_address
 			int k;
@@ -431,9 +434,9 @@ void parsing_operand_print(int li){
 			}
 			print_second=I_format(13,op1_int,op1_int,k*4);//ori - 0x0004: 4
 			for(int i=0;i<32;i++){
-				printf("%d",print_second[i]);
+				fprintf(rFile,"%d",print_second[i]);
 			}
-			printf("\n");
+			//printf("\n");
 		}
 	}else if(!strcmp(code[li].instruction,"nor")){
 		print=R_format(0,op2_int,op3_int,op1_int,0,39);//hex2,7
@@ -465,9 +468,9 @@ void parsing_operand_print(int li){
 	/////////////////////////////////////
 	if(flag==0){
 		for(int i=0;i<32;i++){
-			printf("%d",print[i]);
+			fprintf(rFile,"%d",print[i]);
 		}
-		printf("\n");
+		//printf("\n");
 	}
 }
 
@@ -475,7 +478,9 @@ void parsing_operand_print(int li){
 
 int main(){
 	read_file();
-	printf("%d",line);	
+
+
+	//printf("%d",line);	
 /*	for(int i=0; i<line; i++){
 		printf("line:%d label: %-10s instruction %-10s operand: %-10s\n",i,code[i].label,code[i].instruction,code[i].operand);
 	}*/
@@ -502,6 +507,7 @@ int main(){
 	
 	//data print test
 	data_print();
-
+	fclose(rFile);
+	printf("%s is completely translated! \n",filename);
 	return 0;
 }

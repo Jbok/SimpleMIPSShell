@@ -23,11 +23,14 @@ typedef struct labtab{
 	int line;
 }labtab;
 
+//RESULT FILE;
+FILE *rFile;
 
 struct s_code code[512];
 struct symtab tab[32];
 struct labtab ltab[32];
 
+char filename[255];
 int line=0;
 int text_line;
 int text_size;
